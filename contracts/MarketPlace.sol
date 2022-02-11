@@ -40,9 +40,12 @@ contract MarketPlace is Ownable {
     }
 
     function listItem(uint256 tokenId, uint256 _price) external virtual {
-        // Add check if token exist
         require(productToken.ownerOf(tokenId) == msg.sender, "You not owner");
         saleItems[tokenId] = Item(msg.sender, _price, SaleType.Standart, 0, address(0), 0);
+    }
+
+    function getSeller(uint256 tokenId) external view returns(address){
+        return saleItems[tokenId].seller;
     }
 
     function buyItem(uint256 tokenId) external virtual {
@@ -70,6 +73,11 @@ contract MarketPlace is Ownable {
             saleItems[tokenId].maxBid = amount;
             saleItems[tokenId].maxBidder = msg.sender;
         }
+    }
+
+    function getMaxBidder(uint256 tokenId) external view returns(address){
+        require(saleItems[tokenId].maxBidder != address(0), "For this token not exist bidder");
+        return saleItems[tokenId].maxBidder;
     }
 
     function finishAuction(uint256 tokenId) external virtual {
