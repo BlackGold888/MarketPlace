@@ -22,20 +22,27 @@ async function getContractInstance(hre: HardhatRuntimeEnvironment) : Promise<Con
   let marketPlaceInstance: Contract;
   MarketPlace = await hre.ethers.getContractFactory("MarketPlace");
   marketPlaceInstance = await MarketPlace.attach('0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0');
-  return [marketPlaceInstance, tokenERC721Instance];
+  return [marketPlaceInstance, tokenERC721Instance, tokenERC20Instance];
 }
 
-task("listitem", "List item")
-  .addParam("from", "Seller address")
-  .addParam("tokenid", "Seller Created tokenId")
-  .addParam("price", "Price for item")
+task("buyitem", "List item")
+  .addParam("from", "buyer address")
+  .addParam("tokenid", "buy token id")
+  .addParam("price", "price token id")
   .setAction(async (taskArgs, hre) => {
-    const [marketPlaceInstance, tokenERC721Instance] = await getContractInstance(hre);
+    //get buyer by address
+    const buyer = (await hre.ethers.getSigners()).find(acc => acc.address.toLowerCase() == taskArgs.from);
+    if(!buyer) return console.log('Buyer not founded');
+    //get constacts instance
+    const [marketPlaceInstance, tokenERC721Instance, tokenERC20Instance] = await getContractInstance(hre);
+    console.log(marketPlaceInstance.address);
     
-    const addr1 = (await hre.ethers.getSigners()).find(acc => acc.address.toLowerCase() == taskArgs.from.toLowerCase());
-    if(!addr1) return console.log('Account not founded');
-    console.log(addr1.address);
-    await marketPlaceInstance.connect(addr1).listItem(parseInt(taskArgs.tokenid), hre.ethers.utils.parseEther(taskArgs.price));
-    await tokenERC721Instance.connect(addr1).approve(marketPlaceInstance.address, 0);
-    console.log(await marketPlaceInstance.getSeller(taskArgs.tokenid));
+    await tokenERC20Instance.mint(buyer.address, hre.ethers.utils.parseEther(taskArgs.price));
+    await tokenERC20Instance.connect(buyer).approve(marketPlaceInstance.address, hre.ethers.utils.parseEther(taskArgs.price));
+    console.log(typeof taskArgs.tokenid);
+    
+    await marketPlaceInstance.connect(buyer).buyItem(parseInt(taskArgs.tokenid));
+    //console.log(await tokenERC721Instance.balanceOf(buyer.address));
+    //console.log(await tokenERC721Instance.ownerOf(buyer.address));
+    
 });

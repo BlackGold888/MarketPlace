@@ -25,7 +25,7 @@ async function getContractInstance(hre: HardhatRuntimeEnvironment) : Promise<Con
   return [marketPlaceInstance, tokenERC721Instance];
 }
 
-task("listitem", "List item")
+task("listitemauction", "List item")
   .addParam("from", "Seller address")
   .addParam("tokenid", "Seller Created tokenId")
   .addParam("price", "Price for item")
@@ -35,7 +35,7 @@ task("listitem", "List item")
     const addr1 = (await hre.ethers.getSigners()).find(acc => acc.address.toLowerCase() == taskArgs.from.toLowerCase());
     if(!addr1) return console.log('Account not founded');
     console.log(addr1.address);
-    await marketPlaceInstance.connect(addr1).listItem(parseInt(taskArgs.tokenid), hre.ethers.utils.parseEther(taskArgs.price));
+    await marketPlaceInstance.connect(addr1).listItemOnAuction(parseInt(taskArgs.tokenid), hre.ethers.utils.parseEther(taskArgs.price));
     await tokenERC721Instance.connect(addr1).approve(marketPlaceInstance.address, 0);
     console.log(await marketPlaceInstance.getSeller(taskArgs.tokenid));
 });
